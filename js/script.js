@@ -7,14 +7,14 @@ function generateId() {
   return +new Date();
 }
 
-function generateTodoObject(id, title, author, timestamp, jenis, isCompleted) {
+function generateTodoObject(id, title, author, year, jenis, isComplete) {
   return {
     id,
     title,
     author,
-    timestamp,
+    year,
     jenis,
-    isCompleted
+    isComplete
   }
 }
 
@@ -71,7 +71,7 @@ function loadDataFromStorage() {
 
 
 function makeTodo(todoObject) {
-  const {id, title, author, timestamp, jenis, isCompleted} = todoObject;
+  const {id, title, author, year, jenis, isComplete} = todoObject;
   
   const textTitle = document.createElement('h2');
   textTitle.innerText = title;
@@ -87,8 +87,8 @@ function makeTodo(todoObject) {
   const tahunText = document.createElement('span');
   tahunText.innerText = 'Tahun: ';
   
-  const textTimestamp = document.createElement('span');
-  textTimestamp.innerText = timestamp;
+  const textYear = document.createElement('span');
+  textYear.innerText = year;
 
   const br2 = document.createElement('br');
 
@@ -101,7 +101,7 @@ function makeTodo(todoObject) {
   const textContainer = document.createElement('div');
   textContainer.classList.add('inner');
   
-  textContainer.append(textTitle, penulisText, textAuthor, br1, tahunText, textTimestamp, br2, jenisText, textJenis);
+  textContainer.append(textTitle, penulisText, textAuthor, br1, tahunText, textYear, br2, jenisText, textJenis);
   
   const container = document.createElement('div');
   container.classList.add('item', 'shadow')
@@ -110,14 +110,14 @@ function makeTodo(todoObject) {
 
   const checkButton = document.createElement('button');
   checkButton.addEventListener('click', function () {
-    if (!isCompleted) {
+    if (!isComplete) {
       addTaskToCompleted(id);
     } else {
       undoTaskFromCompleted(id);
     }
   });
 
-  if (isCompleted) {
+  if (isComplete) {
     const undoButton = document.createElement('button');
     undoButton.classList.add('undo-button');
     undoButton.addEventListener('click', function () {
@@ -150,21 +150,27 @@ function makeTodo(todoObject) {
       addTaskToCompleted(id);
     });
 
-    container.append(checkButton,editButton);
+    const trashButton = document.createElement('button');
+    trashButton.classList.add('trash-button');
+    trashButton.addEventListener('click', function () {
+      removeTaskFromCompleted(id);
+    });
+
+    container.append(checkButton, editButton, trashButton);
   }
 
   return container;
 }
 
   function addTodo() {
-    const textTodo = document.getElementById('title').value;
-    const textTodo2 = document.getElementById('author').value;
-    const timestamp = document.getElementById('year').value;
-    const timestamp2 = document.getElementById('category').value;
-    const isCompeleted = document.getElementById('isCompleted').checked;
+    const titleTodo = document.getElementById('title').value;
+    const authorTodo = document.getElementById('author').value;
+    const yearTodo = parseInt(document.getElementById('year').value);
+    const categoryTodo = document.getElementById('category').value;
+    const isCompleteTodo = document.getElementById('isComplete').checked;
 
     const generatedID = generateId();
-    const todoObject = generateTodoObject(generatedID, textTodo,textTodo2, timestamp, timestamp2, isCompeleted);
+    const todoObject = generateTodoObject(generatedID,titleTodo,authorTodo,yearTodo,categoryTodo,isCompleteTodo);
     todos.push(todoObject);
 
     document.dispatchEvent(new Event(RENDER_EVENT));
@@ -173,7 +179,7 @@ function makeTodo(todoObject) {
     document.getElementById('author').value = '';
     document.getElementById('year').value = '';
     document.getElementById('category').value = '';
-    document.getElementById('isCompleted').checked = false;
+    document.getElementById('isComplete').checked = false;
   }
 
   function addTaskToCompleted(todoId /* HTMLELement */) {
@@ -181,7 +187,7 @@ function makeTodo(todoObject) {
 
     if (todoTarget == null) return;
 
-    todoTarget.isCompleted = true;
+    todoTarget.isComplete = true;
     document.dispatchEvent(new Event(RENDER_EVENT));
     saveData();
   }
@@ -207,9 +213,9 @@ function makeTodo(todoObject) {
 
     document.getElementById('title').value = removedTodo.title;
     document.getElementById('author').value = removedTodo.author;
-    document.getElementById('year').value = removedTodo.timestamp;
+    document.getElementById('year').value = removedTodo.year;
     document.getElementById('category').value = removedTodo.jenis;
-    document.getElementById('isCompleted').checked = removedTodo.isCompleted;
+    document.getElementById('isComplete').checked = removedTodo.isComplete;
 
     const submitButton = document.getElementById('submitButton');
     submitButton.removeEventListener('click', addTodo);
@@ -223,7 +229,7 @@ function makeTodo(todoObject) {
     if (todoTarget === -1) return;
     Swal.fire({
         title: "Apakah Anda yakin?",
-        text: "Tugas ini akan dihapus dari daftar selesai.",
+        text: "Tugas ini akan dihapus dari daftar buku ?.",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -248,7 +254,7 @@ function makeTodo(todoObject) {
     const todoTarget = findTodo(todoId);
     if (todoTarget == null) return;
 
-    todoTarget.isCompleted = false;
+    todoTarget.isComplete = false;
     document.dispatchEvent(new Event(RENDER_EVENT));
     saveData();
   }
@@ -305,7 +311,7 @@ function makeTodo(todoObject) {
 
     for (const todoItem of todos) {
       const todoElement = makeTodo(todoItem);
-      if (todoItem.isCompleted) {
+      if (todoItem.isComplete) {
         listCompleted.append(todoElement);
         totalCompleted++;
       } else {
